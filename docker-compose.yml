@@ -50,24 +50,24 @@ services:
       options:
         max-size: "100m"
 
-  acme.sh:
-    image: neilpang/acme.sh
-    container_name: acme.sh
-    command: daemon
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./data/ssl/acmeout:/acme.sh
-      - ./data/ssl/.well-known:/.well-known
-    environment:
-      - DEPLOY_DOCKER_CONTAINER_LABEL=sh.acme.autoload.domain=${DOMAIN}
-      - DEPLOY_DOCKER_CONTAINER_KEY_FILE=/etc/ssl/certs/${DOMAIN}/key.pem
-      - DEPLOY_DOCKER_CONTAINER_CERT_FILE="/etc/ssl/certs/${DOMAIN}/cert.pem"
-      - DEPLOY_DOCKER_CONTAINER_CA_FILE="/etc/ssl/certs/${DOMAIN}/ca.pem"
-      - DEPLOY_DOCKER_CONTAINER_FULLCHAIN_FILE="/etc/ssl/certs/${DOMAIN}/full.pem"
-      - DEPLOY_DOCKER_CONTAINER_RELOAD_CMD="kill 1"
+  # acme.sh:
+  #   image: neilpang/acme.sh
+  #   container_name: acme.sh
+  #   command: daemon
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./data/ssl/acmeout:/acme.sh
+  #     - ./data/ssl/.well-known:/.well-known
+  #   environment:
+  #     - DEPLOY_DOCKER_CONTAINER_LABEL=sh.acme.autoload.domain=${DOMAIN}
+  #     - DEPLOY_DOCKER_CONTAINER_KEY_FILE=/etc/ssl/certs/${DOMAIN}/key.pem
+  #     - DEPLOY_DOCKER_CONTAINER_CERT_FILE="/etc/ssl/certs/${DOMAIN}/cert.pem"
+  #     - DEPLOY_DOCKER_CONTAINER_CA_FILE="/etc/ssl/certs/${DOMAIN}/ca.pem"
+  #     - DEPLOY_DOCKER_CONTAINER_FULLCHAIN_FILE="/etc/ssl/certs/${DOMAIN}/full.pem"
+  #     - DEPLOY_DOCKER_CONTAINER_RELOAD_CMD="kill 1"
 
   php-fpm-service:
-    image: php-fpm-flarum
+    image: php-fpm-flarum-xdebug
     build: ./php-fpm
     container_name: site-php-fpm
     restart: always
@@ -76,6 +76,10 @@ services:
     volumes:
       - ./data/logs:/var/log
       - ./www/flarum:/www/flarum
+      - ./php-fpm/docker-php-ext-xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+    environment:
+      # https://github.com/docker/for-win/issues/5167
+      - XDEBUG_HOST=${XDEBUG_HOST:-host.docker.internal}
     healthcheck:
       test: ["CMD-SHELL", "pidof php-fpm"]
       interval: 5s
